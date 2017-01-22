@@ -3,7 +3,7 @@ import numpy as np
 from collections import Counter
 import datetime
 
-file  = open('data/allDefunciones.csv', "rb")
+file  = open('data/allDefunciones.csv', "r")
 #fileDataName  = open('data/allNacimientos.csv', "rb")
 reader = csv.reader(file)
 
@@ -28,12 +28,12 @@ npData = np.array(allData)
 NPDATA = np.array(ALLDATA)
 
 
-print '\nNumber of Entries: %4d' % npData.shape[0]
-print 'Number of Columns: %4d\n' % npData.shape[1]
+print ( "\nNumber of Entries: %4d" % npData.shape[0] )
+print ( "Number of Columns: %4d\n" % npData.shape[1] )
 
 
 # Check number of entries per column and the most common value
-print '                      # - Unique - Most common'
+print ( "                      # - Unique - Most common" )
 
 for idx in range(len(header)):
     vec  = NPDATA[:,idx]
@@ -41,9 +41,9 @@ for idx in range(len(header)):
 
     if len(vec2) > 0:
         count = Counter(vec2)
-        print '  %-15s: %4d - %6d - ( %4d | %s )' % (header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0])
+        print ( "[%2s] %-15s: %4d - %6d - ( %4d | %s )" % (idx, header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0]) )
     else:
-        print '  %-15s: %4d' % (header[idx], vec2.size)
+        print ( " [%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
 
 
 # for defunciones
@@ -53,10 +53,9 @@ if True:
     vec2 = vec [ NPDATA[:,18] != '' ]
     count = Counter(vec2)
 
-    print '\nOficios mas comunes'
+    print ("\nOficios mas comunes")
     for idx in range(len(count)):
-        print '%4d : %s' % (count.most_common()[idx][1], count.most_common()[idx][0])
-
+        print ( "%4d : %s" % (count.most_common()[idx][1], count.most_common()[idx][0]) )
 
 if True:
     diffBurial = []
@@ -73,6 +72,13 @@ if True:
                 pass
 
     delay = Counter(diffBurial)
-    print '\nTiempo de la muerte al entierro'
+    print ( "\nTiempo de la muerte al entierro" )
     for idx in range(len(delay)):
-        print '%4d : %d dias' % (delay.most_common()[idx][1], delay.most_common()[idx][0])
+        print ( "%4d : %d dias" % (delay.most_common()[idx][1], delay.most_common()[idx][0]) )
+
+#if True:
+#    for obs in npData[:,17]:
+#        if obs != '':
+#            print ("%s\n" % obs)
+
+print(python_version())
