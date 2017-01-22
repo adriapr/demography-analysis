@@ -29,13 +29,16 @@ NPDATA = np.array(ALLDATA)
 print '\nNumber of Entries: %4d' % npData.shape[0]
 print 'Number of Columns: %4d\n' % npData.shape[1]
 
+
 # Check number of entries per column and the most common value
+print '                      # - Unique - Most common'
+
 for idx in range(len(header)):
     vec  = NPDATA[:,idx]
     vec2 = vec [ NPDATA[:,idx] != '' ]
 
     if len(vec2) > 0:
         count = Counter(vec2)
-        print '  %-15s: %4d - (%5d | %s)' % (header[idx], vec2.size, count.most_common(1)[0][1], count.most_common(1)[0][0])
+        print '  %-15s: %4d - %6d - (%5d | %s)' % (header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0])
     else:
         print '  %-15s: %4d' % (header[idx], vec2.size)
