@@ -99,7 +99,7 @@ def readDB( str_file ):
             count = Counter(vec2)
             print ( "[%2s] %-15s: %4d - %6d - ( %4d | %s )" % (idx, header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0]) )
         else:
-            print ( " [%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
+            print ( "[%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
 
     return [header, npData, NPDATA]
 
@@ -114,15 +114,16 @@ def printMostCommon( vec, n=float("inf") ):
             break
         print ( "%4d : %s" % (count.most_common()[idx][1], count.most_common()[idx][0]) )
 
-def plotDateDistribution ( vec, str_ylabel ):
+def plotDateDistribution ( vec, str_ylabel, showPlot=False ):
 
         str_day = ['Lunes', 'martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
 
         str_months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                     'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-        distributionDay = [0] * 7
+        distributionDay   = [0] * 7
         distributionMonth = [0] * 12
+        distributionYear  = [0] * 2000
 
         for d in vec:
             try:
@@ -130,12 +131,20 @@ def plotDateDistribution ( vec, str_ylabel ):
 
                 distributionDay[deathDate.weekday()] += 1
                 distributionMonth[deathDate.month-1] += 1
+                distributionYear[deathDate.year]     += 1
             except: 
                 pass
 
         # compute z-scores to detect outliers
         zScoreDay   = stats.zscore(distributionDay)
         zScoreMonth = stats.zscore(distributionMonth)
+        zScoreYear  = stats.zscore(distributionYear)
+
+        # find first and last year with data 
+        min_year = next(i for i, v in enumerate(distributionYear) if v > 0)
+        max_year_tmp = next(i for i, v in enumerate(reversed(distributionYear)) if v > 0)
+        max_year = len(distributionYear) - 1 - max_year_tmp
+        # print( " %d - %d" % (min_year, max_year) )
 
         print( "\nPor dia de la semana: ")
         for i, v in enumerate(distributionDay):
@@ -145,32 +154,40 @@ def plotDateDistribution ( vec, str_ylabel ):
         for i, v in enumerate(distributionMonth):
             print ( "%12s : %4d ( %+.2f )" % (str_months[i], v, zScoreMonth[i]) )
 
-        y_pos = np.arange(len(distributionMonth))
+        # print( "\nPor año: ")
+        # for i, v in enumerate(distributionYear):
+        #     if v > 0:
+        #         print ( "%12s : %4d ( %+.2f )" % (i, v, zScoreYear[i]) )
 
-        f1 = plt.figure()
-        plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
-        plt.xticks(y_pos, str_months, rotation='vertical')
-        plt.ylabel( str_ylabel )
-        # Pad margins so that markers don't get clipped by the axes
-        plt.margins(0.05, 0)
-        x1,x2,y1,y2 = plt.axis()
-        plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-        plt.subplots_adjust(bottom=0.2)
-        f1.show()
+        if showPlot:
+            y_pos = np.arange(len(distributionMonth))
+
+            f1 = plt.figure()
+            plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
+            plt.xticks(y_pos, str_months, rotation='vertical')
+            plt.ylabel( str_ylabel )
+            # Pad margins so that markers don't get clipped by the axes
+            plt.margins(0.05, 0)
+            x1,x2,y1,y2 = plt.axis()
+            plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
+            plt.subplots_adjust(bottom=0.2)
+            f1.show()
 
 
-        f2 = plt.figure()
-        y_pos = np.arange(len(distributionDay))
-        
-        plt.bar(y_pos, distributionDay, align='center', alpha=0.5)
-        plt.xticks(y_pos, str_day, rotation='vertical')
-        plt.ylabel( str_ylabel )
-        # Pad margins so that markers don't get clipped by the axes
-        plt.margins(0.05, 0)
-        x1,x2,y1,y2 = plt.axis()
-        plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-        plt.subplots_adjust(bottom=0.2)
-        f2.show()
+            f2 = plt.figure()
+            y_pos = np.arange(len(distributionDay))
+            
+            plt.bar(y_pos, distributionDay, align='center', alpha=0.5)
+            plt.xticks(y_pos, str_day, rotation='vertical')
+            plt.ylabel( str_ylabel )
+            # Pad margins so that markers don't get clipped by the axes
+            plt.margins(0.05, 0)
+            x1,x2,y1,y2 = plt.axis()
+            plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
+            plt.subplots_adjust(bottom=0.2)
+            f2.show()
+        else:
+            f1 = f2 = None
 
         return [f1, f2, distributionDay, distributionMonth]
 
