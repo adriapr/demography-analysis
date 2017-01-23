@@ -162,16 +162,18 @@ def plotDateDistribution ( vec, str_ylabel, showPlot=False ):
         if showPlot:
             y_pos = np.arange(len(distributionMonth))
 
-            f1 = plt.figure()
-            plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
-            plt.xticks(y_pos, str_months, rotation='vertical')
-            plt.ylabel( str_ylabel )
+            fig = plt.figure()
+            f, sp = plt.subplots(3, 1)
+
+            sp[0].bar(y_pos, distributionMonth, align='center', alpha=0.5)
+            sp[0].xticks(y_pos, str_months, rotation='vertical')
+            sp[0].ylabel( str_ylabel )
             # Pad margins so that markers don't get clipped by the axes
-            plt.margins(0.05, 0)
-            x1,x2,y1,y2 = plt.axis()
-            plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-            plt.subplots_adjust(bottom=0.2)
-            f1.show()
+            sp[0].margins(0.05, 0)
+            x1,x2,y1,y2 = sp[0].axis()
+            sp[0].axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
+            sp[0].subplots_adjust(bottom=0.2)
+            fig.show()
 
 
             f2 = plt.figure()
