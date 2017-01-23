@@ -5,240 +5,175 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from collections import Counter
 
-print ( " ---- BIRTHS ---------------------------------------------" )
+def main():
+    print ( " ---- BIRTHS ---------------------------------------------" )
 
-#file  = open('data/allDefunciones.csv', "r")
-file  = open('data/allNacimientos.csv', "r")
-reader = csv.reader(file)
+    [headerBirth, npBirthData, NPBIRTHDATA] = readDB ('data/allNacimientos.csv')
 
-rownum = 0
-allData = []
-ALLDATA = []
+    # Distribution of births by month and weekday (text version)
+    if True:
+        #printDateDistribution( npBirthData[:,4] )
+        [f1, f2, deathByDay, deathByMonth] = plotDateDistribution ( npBirthData[:,4], '#Nacimientos' )
 
-for iRow, row in enumerate(reader):
+    print ( "\n\n ---- DEATHS ---------------------------------------------" )
 
-    # Header row.
-    if iRow == 0:
-        header = row
+    [headerDeath, npDeathData, NPDEATHDATA] = readDB ('data/allDefunciones.csv')
 
-    else:
-        allData.append( row )
-        ALLDATA.append( [x.upper() for x in row] )
+    # print more common jobs
+    if True:
+        printMostCommon( NPDEATHDATA[:,18], 15 )
 
-file.close()
+    # print diff between death and burial
+    if False:
+        diffBurial = []
+        # we compare the death date DEFUNCION2 (8) with burial date ENTERRAMIENTO2 (11)
+        for ii, defuncion in enumerate(NPDEATHDATA[:,8]):
+            if (defuncion != '') and (NPDEATHDATA[ii,11] != ''):
+                try:
+                    deathDate  = datetime.datetime.strptime(defuncion,     '%d/%m/%Y').date()
+                    burialDate = datetime.datetime.strptime(NPDEATHDATA[ii,11], '%d/%m/%Y').date()
+                    diffBurial.append( (burialDate - deathDate).days )
+                except: 
+                    pass
 
-# put all data in  numpy
-npBirthData = np.array(allData)
-NPBIRTHDATA = np.array(ALLDATA)
-
-print ( "\nNumber of Entries: %4d" % npBirthData.shape[0] )
-print ( "Number of Columns: %4d\n" % npBirthData.shape[1] )
-
-# Check number of entries per column and the most common value
-print ( "                      # - Unique - Most common" )
-
-for idx in range(len(header)):
-    vec  = NPBIRTHDATA[:,idx]
-    vec2 = vec [ NPBIRTHDATA[:,idx] != '' ]
-
-    if len(vec2) > 0:
-        count = Counter(vec2)
-        print ( "[%2s] %-15s: %4d - %6d - ( %4d | %s )" % (idx, header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0]) )
-    else:
-        print ( " [%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
-
-# Births by months
-if True:
-    distributionDay = [0] * 7
-    distributionMonth = [0] * 12
-
-    for d in npBirthData[:,4]:
-        try:
-            deathDate = datetime.datetime.strptime(d, '%d/%m/%Y').date()
-
-            distributionDay[deathDate.weekday()] += 1
-            distributionMonth[deathDate.month-1] += 1
-        except: 
-            pass
-
-    y_pos = np.arange(len(distributionMonth))
-    str_months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-    f1 = plt.figure()
-    plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
-    plt.xticks(y_pos, str_months, rotation='vertical')
-    plt.ylabel('# Nacimientos')
-    # Pad margins so that markers don't get clipped by the axes
-    plt.margins(0.05, 0)
-    x1,x2,y1,y2 = plt.axis()
-    plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-    plt.subplots_adjust(bottom=0.2)
-    f1.show()
+        delay = Counter(diffBurial)
+        print ( "\nTiempo de la muerte al entierro" )
+        for idx in range(len(delay)):
+            print ( "%4d : %d dias" % (delay.most_common()[idx][1], delay.most_common()[idx][0]) )
 
 
-    f2 = plt.figure()
-    y_pos = np.arange(len(distributionDay))
-    str_day = ['Lunes', 'martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
-    
-    plt.bar(y_pos, distributionDay, align='center', alpha=0.5)
-    plt.xticks(y_pos, str_day, rotation='vertical')
-    plt.ylabel('# Nacimientos')
-    # Pad margins so that markers don't get clipped by the axes
-    plt.margins(0.05, 0)
-    x1,x2,y1,y2 = plt.axis()
-    plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-    plt.subplots_adjust(bottom=0.2)
-    f2.show()
+    # Print all observations
+    if False:
+        for obs in npDeathData[:,17]:
+            if obs != '':
+                print ("%s\n" % obs)
 
-print ( "\n\n ---- DEATHS ---------------------------------------------" )
+    # Death distributions
+    if True:
+        #printDateDistribution( npDeathData[:,8] )
+        [f1, f2, deathByDay, deathByMonth] = plotDateDistribution ( npDeathData[:,8], '#Nacimientos' )
 
-file  = open('data/allDefunciones.csv', "r")
-reader = csv.reader(file)
+    print( "\n\n - PRESS ANY KEY TO FINISH THE SCRIPT (will close all figures) -")
+    input() # keep alive the figures
 
-rownum = 0
-allData = []
-ALLDATA = []
 
-for iRow, row in enumerate(reader):
 
-    # Header row.
-    if iRow == 0:
-        header = row
+# ----------------------- Functions --------------------------------------------------------
 
-    else:
-        allData.append( row )
-        ALLDATA.append( [x.upper() for x in row] )
+def readDB( str_file ):
 
-file.close()
+    file  = open(str_file, "r")
+    reader = csv.reader(file)
 
-# put all data in  numpy
-npDefData = np.array(allData)
-NPDEFDATA = np.array(ALLDATA)
+    rownum = 0
+    allData = []
+    ALLDATA = []
 
-print ( "\nNumber of Entries: %4d" % npDefData.shape[0] )
-print ( "Number of Columns: %4d\n" % npDefData.shape[1] )
+    for iRow, row in enumerate(reader):
 
-# Check number of entries per column and the most common value
-print ( "                      # - Unique - Most common" )
+        # Header row.
+        if iRow == 0:
+            header = row
 
-for idx in range(len(header)):
-    vec  = NPDEFDATA[:,idx]
-    vec2 = vec [ NPDEFDATA[:,idx] != '' ]
+        else:
+            allData.append( row )
+            ALLDATA.append( [x.upper() for x in row] )
 
-    if len(vec2) > 0:
-        count = Counter(vec2)
-        print ( "[%2s] %-15s: %4d - %6d - ( %4d | %s )" % (idx, header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0]) )
-    else:
-        print ( " [%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
+    file.close()
 
-# print more common jobs
-if False:
+    # put all data in  numpy
+    npData = np.array(allData)
+    NPDATA = np.array(ALLDATA)
 
-    vec  = NPDEFDATA[:,18]
-    vec2 = vec [ NPDEFDATA[:,18] != '' ]
+    print ( "\nNumber of Entries: %4d" % npData.shape[0] )
+    print ( "Number of Columns: %4d\n" % npData.shape[1] )
+
+    # Check number of entries per column and the most common value
+    print ( "                      # - Unique - Most common" )
+
+    for idx in range(len(header)):
+        vec  = NPDATA[:,idx]
+        vec2 = vec [ NPDATA[:,idx] != '' ]
+
+        if len(vec2) > 0:
+            count = Counter(vec2)
+            print ( "[%2s] %-15s: %4d - %6d - ( %4d | %s )" % (idx, header[idx], vec2.size, len(count), count.most_common(1)[0][1], count.most_common(1)[0][0]) )
+        else:
+            print ( " [%2s] %-15s: %4d" % (idx, header[idx], vec2.size) )
+
+    return [header, npData, NPDATA]
+
+def printMostCommon( vec, n=float("inf") ):
+
+    vec2 = vec [ vec != '' ]
     count = Counter(vec2)
 
     print ("\nOficios mas comunes")
     for idx in range(len(count)):
+        if idx  > n-1:
+            break
         print ( "%4d : %s" % (count.most_common()[idx][1], count.most_common()[idx][0]) )
 
-# print diff between death and burial
-if False:
-    diffBurial = []
-    # we compare the death date DEFUNCION2 (8) with burial date ENTERRAMIENTO2 (11)
-    for ii, defuncion in enumerate(NPDEFDATA[:,8]):
-        if (defuncion != '') and (NPDEFDATA[ii,11] != ''):
-            try:
-                deathDate  = datetime.datetime.strptime(defuncion,     '%d/%m/%Y').date()
-                burialDate = datetime.datetime.strptime(NPDEFDATA[ii,11], '%d/%m/%Y').date()
-                diffBurial.append( (burialDate - deathDate).days )
+def plotDateDistribution ( vec, str_ylabel ):
 
-    
+        str_day = ['Lunes', 'martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
+
+        str_months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+        distributionDay = [0] * 7
+        distributionMonth = [0] * 12
+
+        for d in vec:
+            try:
+                deathDate = datetime.datetime.strptime(d, '%d/%m/%Y').date()
+
+                distributionDay[deathDate.weekday()] += 1
+                distributionMonth[deathDate.month-1] += 1
             except: 
                 pass
 
-    delay = Counter(diffBurial)
-    print ( "\nTiempo de la muerte al entierro" )
-    for idx in range(len(delay)):
-        print ( "%4d : %d dias" % (delay.most_common()[idx][1], delay.most_common()[idx][0]) )
+        # compute z-scores to detect outliers
+        zScoreDay   = stats.zscore(distributionDay)
+        zScoreMonth = stats.zscore(distributionMonth)
+
+        print( "\nPor dia de la semana: ")
+        for i, v in enumerate(distributionDay):
+            print ( "%12s : %4d ( %+.2f )" % (str_day[i], v, zScoreDay[i]) )
+
+        print( "\nPor mes del año: ")
+        for i, v in enumerate(distributionMonth):
+            print ( "%12s : %4d ( %+.2f )" % (str_months[i], v, zScoreMonth[i]) )
+
+        y_pos = np.arange(len(distributionMonth))
+
+        f1 = plt.figure()
+        plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
+        plt.xticks(y_pos, str_months, rotation='vertical')
+        plt.ylabel( str_ylabel )
+        # Pad margins so that markers don't get clipped by the axes
+        plt.margins(0.05, 0)
+        x1,x2,y1,y2 = plt.axis()
+        plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
+        plt.subplots_adjust(bottom=0.2)
+        f1.show()
 
 
-# Print all observations
-if False:
-    for obs in npDefData[:,17]:
-        if obs != '':
-            print ("%s\n" % obs)
+        f2 = plt.figure()
+        y_pos = np.arange(len(distributionDay))
+        
+        plt.bar(y_pos, distributionDay, align='center', alpha=0.5)
+        plt.xticks(y_pos, str_day, rotation='vertical')
+        plt.ylabel( str_ylabel )
+        # Pad margins so that markers don't get clipped by the axes
+        plt.margins(0.05, 0)
+        x1,x2,y1,y2 = plt.axis()
+        plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
+        plt.subplots_adjust(bottom=0.2)
+        f2.show()
 
-# Distribution of deaths by month (text version)
-if True:
-    distributionDay = []
-    distributionMonth = []
-
-    for d in npDefData[:,8]:
-        try:
-            deathDate = datetime.datetime.strptime(d, '%d/%m/%Y').date()
-            distributionDay.append( deathDate.strftime("%A") )
-            distributionMonth.append( deathDate.strftime("%B") )
-        except: 
-            pass
-
-    dayCounter = Counter(distributionDay)
-    print ( "\nDefuncion segun dia de la semana" )
-    for idx in range(len(dayCounter)):
-        print ( "%4d : %s" % (dayCounter.most_common()[idx][1], dayCounter.most_common()[idx][0]) )
-
-    monthCounter = Counter(distributionMonth)
-    print ( "\nDefuncion segun mes" )
-    for idx in range(len(monthCounter)):
-        print ( "%4d : %s" % (monthCounter.most_common()[idx][1], monthCounter.most_common()[idx][0]) )
-
-# Distribution of deaths by month or date (plot version)
-if True:
-    distributionDay = [0] * 7
-    distributionMonth = [0] * 12
-
-    for d in npDefData[:,8]:
-        try:
-            deathDate = datetime.datetime.strptime(d, '%d/%m/%Y').date()
-
-            distributionDay[deathDate.weekday()] += 1
-            distributionMonth[deathDate.month-1] += 1
-        except: 
-            pass
-
-    y_pos = np.arange(len(distributionMonth))
-    str_months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-    f3 = plt.figure()
-    plt.bar(y_pos, distributionMonth, align='center', alpha=0.5)
-    plt.xticks(y_pos, str_months, rotation='vertical')
-    plt.ylabel('# Defunciones')
-    # Pad margins so that markers don't get clipped by the axes
-    plt.margins(0.05, 0)
-    x1,x2,y1,y2 = plt.axis()
-    plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-    plt.subplots_adjust(bottom=0.2)
-    f3.show()
-
-    y_pos = np.arange(len(distributionDay))
-    str_day = ['Lunes', 'martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
-    
-    f4 = plt.figure()
-    plt.bar(y_pos, distributionDay, align='center', alpha=0.5)
-    plt.xticks(y_pos, str_day, rotation='vertical')
-    plt.ylabel('# Defunciones')
-    # Pad margins so that markers don't get clipped by the axes
-    plt.margins(0.05, 0)
-    x1,x2,y1,y2 = plt.axis()
-    plt.axis((x1,x2,y1,y2 + 20))    # Tweak spacing to prevent clipping of tick-labels
-    plt.subplots_adjust(bottom=0.2)
-    f4.show()
-
-    # add z-test for statistical significance of deaths by month
-    print( "Z-Tests for deaths each month" )
-    print( stats.zscore(distributionMonth) )
+        return [f1, f2, distributionDay, distributionMonth]
 
 
-input() # keep alive the figures
+if __name__ == "__main__":
+    main()
