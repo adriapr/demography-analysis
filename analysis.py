@@ -106,6 +106,7 @@ def main():
         max_year_tmp = next(i for i, v in enumerate(reversed(distributionDeathsInSummer)) if v > 0)
         max_year = len(distributionDeathsInSummer) - 1 - max_year_tmp
         yearRange = np.arange(min_year, max_year+1)
+        print( yearRange )
 
         fig = plt.figure()
         values = distributionDeathsInSummer[min_year:max_year+1]
