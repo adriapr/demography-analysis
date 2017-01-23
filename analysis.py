@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-from scipy import stats
+#from scipy import stats
 from collections import Counter
 
 def main():
@@ -106,7 +106,6 @@ def main():
         max_year_tmp = next(i for i, v in enumerate(reversed(distributionDeathsInSummer)) if v > 0)
         max_year = len(distributionDeathsInSummer) - 1 - max_year_tmp
         yearRange = np.arange(min_year, max_year+1)
-        print( yearRange )
 
         fig = plt.figure()
         values = distributionDeathsInSummer[min_year:max_year+1]
@@ -200,8 +199,6 @@ def plotDateDistribution ( vec, str_ylabel, showPlot=True ):
 
         str_months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                     'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-        str_monthsShort = [v[0] for v in str_months]
 
         distributionDay   = [0] * 7
         distributionMonth = [0] * 12
